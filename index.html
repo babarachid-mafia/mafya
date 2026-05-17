@@ -33,9 +33,12 @@
           <li><b>مافيا التسكيت:</b> يظهر هذا الدور عندما يكون عدد المافيا 3 أو أكثر. يمكنه في الليل اختيار لاعب لمنعه من الكلام والدفاع في النهار. يمكن استهداف أي لاعب، حتى مافيا.</li>
           <li><b>الطبيب:</b> يختار لاعباً ليحميه في الليل. إذا كان هو نفس هدف المافيا، لا يموت أحد.</li>
           <li><b>المحقق:</b> يختار لاعباً ليتحقق منه، ويظهر له هل هو من المافيا أم لا.</li>
-          <li><b>التصويت النهاري:</b> كل لاعب حي يصوت على المتهم. يظهر بجانب كل لاعب عدد الأصوات عليه، وحتى الصفر. يمكن لأي لاعب تغيير صوته قبل حل التصويت.</li>
+          <li><b>التصويت النهاري:</b> كل لاعب حي يصوت على المتهم. يظهر بجانب كل لاعب عدد الأصوات عليه، وحتى الصفر. إذا صوّت عليك شخص يظهر لك تنبيه، ويمكنك تغيير صوتك قبل حل التصويت.</li>
           <li><b>التنبيه:</b> إذا صوت عليك شخص، سيظهر لك: فلان صوت عليك.</li>
           <li><b>إقصاء المافيا أو إسكاتهم:</b> اللعبة تسمح للمافيا بالتصويت على مافيا أخرى أو إسكاتها إذا اختاروا ذلك.</li>
+          <li><b>عدد المافيا:</b> في كل 5 لاعبين تكون مافيا واحدة تقريباً، يعني 10 لاعبين = 2 مافيا.</li>
+          <li><b>بعد الإقصاء:</b> يظهر اسم اللاعب المقصى والدور الذي كان عنده، وتظهر إحصائيات عدد المواطنين والمافيا المتبقين.</li>
+          <li><b>أعضاء المافيا:</b> كل مافيا يعرف أسماء المافيا الآخرين في لوحة سرية.</li>
         </ul>
       </div>
     </section>
@@ -72,9 +75,9 @@
         <p id="personalNotice" class="notice hidden"></p>
       </section>
 
-      <section class="card">
-        <h2>اللاعبون المتصلون</h2>
-        <div id="playersList" class="players"></div>
+      <section class="card stats-card">
+        <h2>إحصائيات اللعبة</h2>
+        <div id="statsBox" class="statsBox"></div>
       </section>
 
       <section id="actionCard" class="card hidden">
@@ -110,9 +113,21 @@
         <h2>الأحداث</h2>
         <div id="logBox" class="log"></div>
       </section>
+
+      <section class="card eliminated-card">
+        <h2>المقصيون</h2>
+        <div id="eliminatedList" class="eliminatedList"></div>
+      </section>
+
+      <section class="card">
+        <h2>لائحة اللاعبين</h2>
+        <p class="hint">اللائحة العادية ديال المشاركين جات تحت الأحداث باش يبقا التصويت والاختيارات فوق.</p>
+        <div id="playersList" class="players"></div>
+      </section>
     </section>
     <footer class="creator-credit">
-      صممت بواسطة <b>رشيد بابا</b> <span>بمساعدة</span> <b>عبد الصمد بابا</b>
+      <div>صممت بواسطة <b>رشيد بابا</b> <a href="https://www.instagram.com/dibaziom?igsh=MTQ1MWN2emxoY210dg==" target="_blank" rel="noopener">Instagram</a></div>
+      <div><span>بمساعدة</span> <b>عبد الصمد بابا</b> <a href="https://www.instagram.com/ici__nv?igsh=OHZoYTFzM21ianVx" target="_blank" rel="noopener">Instagram</a></div>
     </footer>
   </main>
 

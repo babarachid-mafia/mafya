@@ -1,11 +1,11 @@
-/* Mafia Online V3 - Firebase Realtime Database */
+/* Mafia Online V5 - Firebase Realtime Database */
 (function(){
   const $ = (id)=>document.getElementById(id);
   const els = {
     configWarning:$('configWarning'), joinCard:$('joinCard'), gameCard:$('gameCard'), rulesBtn:$('rulesBtn'), rulesBox:$('rulesBox'),
     roomInput:$('roomInput'), nameInput:$('nameInput'), createBtn:$('createBtn'), joinBtn:$('joinBtn'), roomCodeLabel:$('roomCodeLabel'), phaseLabel:$('phaseLabel'), leaveBtn:$('leaveBtn'),
     roleBox:$('roleBox'), myStatus:$('myStatus'), personalNotice:$('personalNotice'), playersList:$('playersList'), actionCard:$('actionCard'), actionTitle:$('actionTitle'), actionHint:$('actionHint'), targetsList:$('targetsList'),
-    mafiaInfoCard:$('mafiaInfoCard'), mafiaMembers:$('mafiaMembers'), mafiaKillInfo:$('mafiaKillInfo'), mafiaMuteInfo:$('mafiaMuteInfo'), hostCard:$('hostCard'),
+    mafiaInfoCard:$('mafiaInfoCard'), mafiaMembers:$('mafiaMembers'), mafiaKillInfo:$('mafiaKillInfo'), mafiaMuteInfo:$('mafiaMuteInfo'), statsBox:$('statsBox'), eliminatedList:$('eliminatedList'), hostCard:$('hostCard'),
     assignBtn:$('assignBtn'), nightBtn:$('nightBtn'), resolveNightBtn:$('resolveNightBtn'), dayVoteBtn:$('dayVoteBtn'), resolveVoteBtn:$('resolveVoteBtn'), resetVotesBtn:$('resetVotesBtn'), deleteRoomBtn:$('deleteRoomBtn'), logBox:$('logBox')
   };
 
@@ -51,13 +51,18 @@
     if(!db) return alert('Firebase غير موجد. صلح firebase-config.js');
     const code = els.roomInput.value.trim() || roomCode();
     const name = cleanName(els.nameInput.value);
+    const ref = db.ref('rooms/'+code);
+    const snap = await ref.get();
+    if(snap.exists()){
+      alert('هاد الغرفة موجودة بالفعل. ضغط على دخول باش تلتحق بها، ماشي إنشاء غرفة جديدة.');
+      return;
+    }
     isHost = true;
     currentRoom = code;
-    const ref = db.ref('rooms/'+code);
     await ref.set({
       createdAt: now(), hostId: playerId,
       state:{phase:'lobby', message:'تم إنشاء الغرفة. انتظروا دخول اللاعبين.'},
-      players:{[playerId]:{name, alive:true, muted:false, role:'', joinedAt:now(), online:true}},
+      players:{[playerId]:{name, alive:true, muted:false, role:'', eliminatedRole:'', joinedAt:now(), online:true}},
       votes:{day:{}, mafiaKill:{}, mafiaMute:{}, doctorProtect:{}, detectiveCheck:{}}
     });
     enterRoom(code);
@@ -73,7 +78,7 @@
     currentRoom = code;
     const data=snap.val();
     isHost = data.hostId === playerId;
-    await db.ref(`rooms/${code}/players/${playerId}`).update({name, alive:true, muted:false, joinedAt:now(), online:true});
+    await db.ref(`rooms/${code}/players/${playerId}`).update({name, alive:true, muted:false, eliminatedRole:'', joinedAt:now(), online:true});
     enterRoom(code);
   }
 
@@ -113,13 +118,53 @@
 
     const myRole = me?.role ? ROLE_LABEL[me.role] || me.role : 'لم يتم توزيع الأدوار بعد';
     els.roleBox.textContent = myRole;
-    els.myStatus.textContent = me?.alive===false ? 'أنت مقصى من اللعبة.' : (me?.muted ? 'أنت مسكّت هذا النهار: ممنوع عليك الكلام والدفاع.' : 'أنت داخل اللعبة.');
+    els.myStatus.textContent = buildMyStatus(me);
 
+    renderStats();
     renderPlayers();
+    renderEliminated();
     renderPersonalNotice();
     renderActions();
     renderMafiaInfo();
     renderLog();
+  }
+
+  function buildMyStatus(me){
+    if(!me) return '';
+    if(me.alive===false) return `أنت مقصى من اللعبة. الدور الذي كان عندك: ${ROLE_LABEL[me.eliminatedRole || me.role] || me.eliminatedRole || me.role || 'غير معروف'}.`;
+    const parts=[];
+    if(me.muted) parts.push('أنت مسكّت هذا النهار: ممنوع عليك الكلام والدفاع.');
+    else parts.push('أنت داخل اللعبة.');
+    if(isMafiaRole(me.role)){
+      const others = playersArray().filter(p=>p.id!==playerId && isMafiaRole(p.role)).map(p=>p.name);
+      if(others.length) parts.push('المافيا الآخرون معك: ' + others.join('، ') + '.');
+      else parts.push('أنت المافيا الوحيد حالياً.');
+    }
+    return parts.join(' ');
+  }
+
+  function renderStats(){
+    const ps=playersArray();
+    const alive=ps.filter(p=>p.alive!==false);
+    const mafia=alive.filter(p=>isMafiaRole(p.role)).length;
+    const citizens=alive.filter(p=>p.role && !isMafiaRole(p.role)).length;
+    const unknown=alive.filter(p=>!p.role).length;
+    els.statsBox.innerHTML = `
+      <div class="stat"><span>المافيا المتبقون</span><b>${mafia}</b></div>
+      <div class="stat"><span>المواطنون والفريق الصالح</span><b>${citizens}</b></div>
+      <div class="stat"><span>الأحياء</span><b>${alive.length}</b></div>
+      <div class="stat"><span>المقصيون</span><b>${ps.length-alive.length}</b></div>
+      ${unknown ? `<div class="stat"><span>بدون أدوار بعد</span><b>${unknown}</b></div>` : ''}
+    `;
+  }
+
+  function renderEliminated(){
+    const eliminated = playersArray().filter(p=>p.alive===false);
+    if(!eliminated.length){ els.eliminatedList.innerHTML = '<p class="hint">ما كاين حتى لاعب مقصى دابا.</p>'; return; }
+    els.eliminatedList.innerHTML = eliminated.map(p=>{
+      const role = ROLE_LABEL[p.eliminatedRole || p.role] || p.eliminatedRole || p.role || 'غير معروف';
+      return `<div class="eliminatedItem"><span>${escapeHtml(p.name || 'لاعب')}</span><b>${role}</b></div>`;
+    }).join('');
   }
 
   function renderPlayers(){
@@ -133,7 +178,8 @@
       const name = document.createElement('div');
       const mine = p.id===playerId ? ' 👑' : '';
       const online = p.online ? '<span class="green">●</span>' : '<span>●</span>';
-      name.innerHTML = `${online} <b>${escapeHtml(p.name||'لاعب')}</b>${mine} ${p.muted?'<span class="gold">🔇</span>':''}`;
+      const eliminatedRole = p.alive===false ? ` <span class="gold smallRole">(${ROLE_LABEL[p.eliminatedRole || p.role] || p.eliminatedRole || p.role || 'غير معروف'})</span>` : '';
+      name.innerHTML = `${online} <b>${escapeHtml(p.name||'لاعب')}</b>${mine} ${p.muted?'<span class="gold">🔇</span>':''}${eliminatedRole}`;
       const meta = document.createElement('div');
       const v = counts[p.id] || 0;
       meta.innerHTML = `<span class="pill voteCount">${v}</span>`;
@@ -234,12 +280,12 @@
     const ps = playersArray().filter(p=>p.online!==false);
     if(ps.length < 4) return alert('خاص على الأقل 4 لاعبين للتجربة. الأفضل 6 أو أكثر.');
     const shuffled = shuffle(ps);
-    let mafiaCount = ps.length>=10 ? 3 : (ps.length>=7 ? 2 : 1);
-    if(ps.length>=12) mafiaCount = 4;
+    let mafiaCount = Math.max(1, Math.floor(ps.length / 5));
     const updates={};
     shuffled.forEach(p=> updates[`players/${p.id}/role`]='citizen');
     shuffled.forEach(p=> updates[`players/${p.id}/alive`]=true);
     shuffled.forEach(p=> updates[`players/${p.id}/muted`]=false);
+    shuffled.forEach(p=> updates[`players/${p.id}/eliminatedRole`]='');
     for(let i=0;i<mafiaCount;i++) updates[`players/${shuffled[i].id}/role`] = (mafiaCount>=3 && i===0) ? 'silencer' : 'mafia';
     let idx=mafiaCount;
     if(shuffled[idx]) updates[`players/${shuffled[idx++].id}/role`]='doctor';
@@ -271,7 +317,7 @@
     if(muteTarget && byId[muteTarget]){ updates[`players/${muteTarget}/muted`]=true; msg.push(`${byId[muteTarget].name} تم إسكاتُه هذا النهار.`); }
     if(killTarget && byId[killTarget]){
       if(protectedIds.has(killTarget)) msg.push('الطبيب نجح في حماية الضحية. لا أحد مات هذه الليلة.');
-      else { updates[`players/${killTarget}/alive`]=false; msg.push(`${byId[killTarget].name} تم إقصاؤه في الليل.`); }
+      else { updates[`players/${killTarget}/alive`]=false; updates[`players/${killTarget}/eliminatedRole`]=byId[killTarget].role || ''; msg.push(`${byId[killTarget].name} تم إقصاؤه في الليل. الدور: ${ROLE_LABEL[byId[killTarget].role] || byId[killTarget].role || 'غير معروف'}.`); }
     }else msg.push('لم يتم اختيار ضحية واضحة من طرف المافيا.');
 
     const detResults={};
@@ -297,8 +343,8 @@
     const ps=playersArray(); const byId=Object.fromEntries(ps.map(p=>[p.id,p]));
     const target = winnerFromVotes(latest.votes?.day || {});
     if(target && byId[target]){
-      await roomRef.update({[`players/${target}/alive`]:false, 'state':{phase:'result', message:`تم إقصاء ${byId[target].name} بالتصويت.`}, 'votes/day':{}});
-      await addLog(`تم إقصاء ${byId[target].name} بالتصويت.`);
+      await roomRef.update({[`players/${target}/alive`]:false, [`players/${target}/eliminatedRole`]:byId[target].role || '', 'state':{phase:'result', message:`تم إقصاء ${byId[target].name} بالتصويت. الدور: ${ROLE_LABEL[byId[target].role] || byId[target].role || 'غير معروف'}.`}, 'votes/day':{}});
+      await addLog(`تم إقصاء ${byId[target].name} بالتصويت. الدور: ${ROLE_LABEL[byId[target].role] || byId[target].role || 'غير معروف'}.`);
     }else{
       await roomRef.update({'state':{phase:'result', message:'لم تكن هناك نتيجة واضحة في التصويت. لا أحد أقصي.'}, 'votes/day':{}});
       await addLog('تعادل أو لا يوجد تصويت كافٍ. لا أحد أقصي.');
