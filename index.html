@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mafia Firebase Test</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app">
+    <section class="hero">
+      <div class="badge">نسخة تجربة Online</div>
+      <h1>لعبة المافيا</h1>
+      <p>كل لاعب يدخل من هاتفه. الأسماء والأدوار تظهر عند الجميع عبر Firebase.</p>
+    </section>
+
+    <section id="setupBox" class="card warning">
+      <h2>قبل التشغيل</h2>
+      <p>خاصك تدخل إعدادات Firebase ديالك في ملف <b>firebase-config.js</b>.</p>
+      <p>إلى درتيها وبقات هاد الرسالة، تأكد من <b>apiKey</b> و <b>databaseURL</b>.</p>
+    </section>
+
+    <section class="card" id="entryBox">
+      <h2>دخول اللعبة</h2>
+      <label>كود الغرفة</label>
+      <input id="roomInput" placeholder="مثال: 1234" maxlength="12" />
+
+      <label>اسم اللاعب</label>
+      <input id="nameInput" placeholder="كتب سميتك" maxlength="24" />
+
+      <div class="row">
+        <button id="createRoomBtn">إنشاء غرفة</button>
+        <button id="joinRoomBtn" class="secondary">دخول</button>
+      </div>
+      <p class="hint">اللي ينشئ الغرفة هو المدير، وهو اللي يوزع الأدوار.</p>
+    </section>
+
+    <section class="card hidden" id="gameBox">
+      <div class="topbar">
+        <div>
+          <div class="small">الغرفة</div>
+          <strong id="roomCodeText">----</strong>
+        </div>
+        <button id="leaveBtn" class="danger smallBtn">خروج</button>
+      </div>
+
+      <div class="roleBox" id="roleBox">
+        <div class="small">دورك السري</div>
+        <h2 id="myRoleText">لم يتم توزيع الأدوار بعد</h2>
+        <p id="myRoleHelp">انتظر المدير يضغط على زر توزيع الأدوار.</p>
+      </div>
+
+      <div class="card inner">
+        <h3>اللاعبون المتصلون</h3>
+        <div id="playersList" class="players"></div>
+      </div>
+
+      <div class="card inner hidden" id="hostPanel">
+        <h3>لوحة المدير</h3>
+        <p class="hint">هذا زر تجربة فقط: يوزع مافيا واحدة ومحقق وطبيب والباقي مواطنين حسب عدد اللاعبين.</p>
+        <button id="assignRolesBtn">توزيع الأدوار</button>
+        <button id="resetRolesBtn" class="secondary">مسح الأدوار</button>
+        <button id="clearRoomBtn" class="danger">حذف الغرفة</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
