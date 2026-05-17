@@ -1,113 +1,123 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>لعبة المافيا Online</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>مافيا أونلاين</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div class="bg-orb orb-one"></div>
+  <div class="bg-orb orb-two"></div>
+  <div class="bg-pattern"></div>
   <main class="app">
-    <section class="hero">
-      <div class="badge">نسخة Online عبر Firebase</div>
+    <header class="hero">
+      <div class="badge">Mafia Online</div>
       <h1>لعبة المافيا</h1>
-      <p>كل لاعب يدخل من هاتفه. الأدوار سرية، واللعب يتم جماعياً عبر نفس الرابط.</p>
-      <button id="rulesBtn" class="ghost">📜 قواعد اللعبة</button>
-    </section>
+      <p>ألعبوها مع الأصدقاء من أي هاتف. الأدوار سرية، والتصويت يظهر مباشرة.</p>
+      <div class="hero-decor"><span></span><b>✦</b><span></span></div>
+    </header>
 
-    <section id="setupBox" class="card warning hidden">
+    <section id="configWarning" class="card warning hidden">
       <h2>قبل التشغيل</h2>
-      <p>خاصك تدخل إعدادات Firebase ديالك في ملف <b>firebase-config.js</b>.</p>
-      <p>إلى درتيها وبقات هاد الرسالة، تأكد من <b>apiKey</b> و <b>databaseURL</b>.</p>
+      <p>خاصك تدخل إعدادات Firebase ديالك في ملف <b>firebase-config.js</b>. تأكد من وجود <b>apiKey</b> و <b>databaseURL</b>.</p>
     </section>
 
-    <section class="card" id="entryBox">
+    <section class="card rules-card">
+      <button id="rulesBtn" class="btn secondary full">قواعد اللعبة 📜</button>
+      <div id="rulesBox" class="rules hidden">
+        <h2>قواعد اللعبة</h2>
+        <p><b>الهدف:</b> المواطنون يربحون إذا خرجت جميع المافيا. المافيا تربح إذا أصبح عدد المافيا الأحياء مساوياً أو أكبر من باقي اللاعبين.</p>
+        <ul>
+          <li><b>المافيا:</b> في الليل يصوتون سراً على الضحية. تصويت المافيا يظهر فقط لأعضاء المافيا. اللاعب الذي يحصل على أكبر عدد من أصوات المافيا يكون هدف القتل.</li>
+          <li><b>مافيا التسكيت:</b> يظهر هذا الدور عندما يكون عدد المافيا 3 أو أكثر. يمكنه في الليل اختيار لاعب لمنعه من الكلام والدفاع في النهار. يمكن استهداف أي لاعب، حتى مافيا.</li>
+          <li><b>الطبيب:</b> يختار لاعباً ليحميه في الليل. إذا كان هو نفس هدف المافيا، لا يموت أحد.</li>
+          <li><b>المحقق:</b> يختار لاعباً ليتحقق منه، ويظهر له هل هو من المافيا أم لا.</li>
+          <li><b>التصويت النهاري:</b> كل لاعب حي يصوت على المتهم. يظهر بجانب كل لاعب عدد الأصوات عليه، وحتى الصفر. يمكن لأي لاعب تغيير صوته قبل حل التصويت.</li>
+          <li><b>التنبيه:</b> إذا صوت عليك شخص، سيظهر لك: فلان صوت عليك.</li>
+          <li><b>إقصاء المافيا أو إسكاتهم:</b> اللعبة تسمح للمافيا بالتصويت على مافيا أخرى أو إسكاتها إذا اختاروا ذلك.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="joinCard" class="card">
       <h2>دخول اللعبة</h2>
       <label>كود الغرفة</label>
-      <input id="roomInput" placeholder="مثال: 1234" maxlength="12" />
-
+      <input id="roomInput" inputmode="numeric" maxlength="6" placeholder="مثال: 5800" />
       <label>اسم اللاعب</label>
-      <input id="nameInput" placeholder="كتب سميتك" maxlength="24" />
-
+      <input id="nameInput" maxlength="20" placeholder="اكتب اسمك" />
       <div class="row">
-        <button id="createRoomBtn">إنشاء غرفة</button>
-        <button id="joinRoomBtn" class="secondary">دخول</button>
+        <button id="createBtn" class="btn danger">إنشاء غرفة</button>
+        <button id="joinBtn" class="btn secondary">دخول</button>
       </div>
-      <p class="hint">اللي ينشئ الغرفة هو المدير. المدير يضغط على بداية الليل/التصويت/حل النتائج.</p>
     </section>
 
-    <section class="hidden" id="gameBox">
+    <section id="gameCard" class="hidden">
       <div class="card topbar">
         <div>
-          <div class="small">الغرفة</div>
-          <strong id="roomCodeText">----</strong>
+          <span class="muted">الغرفة</span>
+          <b id="roomCodeLabel">----</b>
         </div>
-        <div class="row compact">
-          <button id="rulesBtn2" class="smallBtn secondary">القواعد</button>
-          <button id="leaveBtn" class="danger smallBtn">خروج</button>
+        <div>
+          <span class="muted">المرحلة</span>
+          <b id="phaseLabel">الانتظار</b>
         </div>
+        <button id="leaveBtn" class="btn small secondary">خروج</button>
       </div>
 
-      <section class="card roleBox" id="roleBox">
-        <div class="small">دورك السري</div>
-        <h2 id="myRoleText">لم يتم توزيع الأدوار بعد</h2>
-        <p id="myRoleHelp">انتظر المدير يضغط على زر توزيع الأدوار.</p>
+      <section class="card myrole">
+        <h2>دورك السري</h2>
+        <div id="roleBox" class="rolebox">لم يتم توزيع الأدوار بعد</div>
+        <p id="myStatus" class="hint"></p>
+        <p id="personalNotice" class="notice hidden"></p>
       </section>
 
-      <section class="card statusBox">
-        <h3>حالة اللعبة</h3>
-        <div id="phaseText" class="phase">انتظار البداية</div>
-        <p id="gameMessage" class="hint">اجمع اللاعبين ثم اضغط توزيع الأدوار.</p>
-      </section>
-
-      <section class="card inner hidden" id="actionPanel">
-        <h3 id="actionTitle">إجراء</h3>
-        <p id="actionHelp" class="hint"></p>
-        <div id="actionOptions" class="options"></div>
-      </section>
-
-      <section class="card inner">
-        <h3>اللاعبون</h3>
-        <p class="hint">الأدوار لا تظهر هنا. كل لاعب يرى دوره فقط في الأعلى.</p>
+      <section class="card">
+        <h2>اللاعبون المتصلون</h2>
         <div id="playersList" class="players"></div>
       </section>
 
-      <section class="card inner hidden" id="hostPanel">
-        <h3>لوحة المدير</h3>
-        <p class="hint">استعمل الأزرار بالترتيب: توزيع الأدوار → بداية الليل → حل الليل → بداية التصويت → حل التصويت.</p>
-        <div class="hostGrid">
-          <button id="assignRolesBtn">توزيع الأدوار</button>
-          <button id="startNightBtn" class="secondary">بداية الليل</button>
-          <button id="resolveNightBtn" class="secondary">حل الليل</button>
-          <button id="startVoteBtn" class="secondary">بداية التصويت</button>
-          <button id="resolveVoteBtn" class="secondary">حل التصويت</button>
-          <button id="resetGameBtn" class="danger">إعادة اللعبة</button>
-          <button id="clearRoomBtn" class="danger">حذف الغرفة</button>
+      <section id="actionCard" class="card hidden">
+        <h2 id="actionTitle">اختيار</h2>
+        <p id="actionHint" class="hint"></p>
+        <div id="targetsList" class="targets"></div>
+      </section>
+
+      <section id="mafiaInfoCard" class="card hidden mafia-card">
+        <h2>لوحة المافيا السرية</h2>
+        <div id="mafiaMembers"></div>
+        <h3>تصويت القتل</h3>
+        <div id="mafiaKillInfo"></div>
+        <h3>اختيار التسكيت</h3>
+        <div id="mafiaMuteInfo"></div>
+      </section>
+
+      <section id="hostCard" class="card hidden">
+        <h2>لوحة المدير</h2>
+        <p class="hint">المدير فقط يتحكم فالمراحل. الأدوار تبقى سرية لكل لاعب.</p>
+        <div class="row wrap">
+          <button id="assignBtn" class="btn danger">توزيع الأدوار</button>
+          <button id="nightBtn" class="btn secondary">بداية الليل</button>
+          <button id="resolveNightBtn" class="btn secondary">حل الليل</button>
+          <button id="dayVoteBtn" class="btn secondary">بداية التصويت</button>
+          <button id="resolveVoteBtn" class="btn secondary">حل التصويت</button>
+          <button id="resetVotesBtn" class="btn secondary">مسح التصويت</button>
+          <button id="deleteRoomBtn" class="btn dark">حذف الغرفة</button>
         </div>
       </section>
+
+      <section class="card">
+        <h2>الأحداث</h2>
+        <div id="logBox" class="log"></div>
+      </section>
     </section>
+    <footer class="creator-credit">
+      صممت بواسطة <b>رشيد بابا</b> <span>بمساعدة</span> <b>عبد الصمد بابا</b>
+    </footer>
   </main>
 
-  <div id="rulesModal" class="modal hidden">
-    <div class="modalBox">
-      <button id="closeRulesBtn" class="closeBtn">×</button>
-      <h2>📜 قواعد لعبة المافيا</h2>
-      <ol>
-        <li><b>الهدف:</b> المواطنون يحاولون كشف المافيا وإقصاءها. المافيا تحاول تقليل عدد المواطنين حتى تسيطر.</li>
-        <li><b>المافيا:</b> في الليل تختار لاعباً ليتم قتله. إذا كان هناك أكثر من مافيا، اختيار الأغلبية هو المعتمد.</li>
-        <li><b>الطبيب:</b> في الليل يختار لاعباً لحمايته. إذا حمى نفس اللاعب الذي اختارته المافيا فلن يموت.</li>
-        <li><b>المحقق:</b> في الليل يختار لاعباً ليتحقق منه. تظهر له النتيجة: مافيا أو ليس مافيا.</li>
-        <li><b>المواطن الصالح:</b> لا يملك إجراء في الليل، لكن يشارك في النقاش والتصويت نهاراً.</li>
-        <li><b>النهار:</b> يناقش اللاعبون ويحاولون معرفة المافيا بدون كشف الأدوار السرية مباشرة.</li>
-        <li><b>التصويت:</b> كل لاعب حي يصوت ضد لاعب واحد. صاحب أكثر أصوات يخرج من اللعبة. عند التعادل لا يخرج أحد.</li>
-        <li><b>الفوز:</b> يفوز المواطنون إذا خرجت كل المافيا. وتفوز المافيا إذا أصبح عددها مساوياً أو أكثر من باقي اللاعبين الأحياء.</li>
-      </ol>
-      <p class="hint">ملاحظة: هذه نسخة رقمية مبسطة. المدير فقط يتحكم في الانتقال بين مراحل اللعبة.</p>
-    </div>
-  </div>
-
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
   <script src="app.js"></script>
 </body>
